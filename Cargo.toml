@@ -1,0 +1,31 @@
+[package]
+name = "repo-tree"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tui = "0.19"
+crossterm = "0.27.0"
+tokio = { version = "1.0", features = ["full"] }
+reqwest = { version = "0.12.9", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+async-trait = "0.1"
+indent = "0.1.1"
+futures = "0.3"
+clap = { version = "4.5.20", features = ["derive"] }
+lazy_static = "1.5.0"
+openssl = { version = "0.10", features = ["vendored"] }
+tabled = "0.16.0"
+log = "0.4"
+env_logger = "0.10"  # 간단한 환경 변수 기반 설정 가능
+
+[profile.release]
+opt-level = "z"             # 크기 중심 최적화
+strip = true                # 디버그 심볼 제거
+lto = true                  # 링크 시간 최적화
+codegen-units = 1           # 코드 생성 단위 줄이기
+panic = "abort"             # 패닉을 최소화하여 크기 줄임
+
+[workspace]

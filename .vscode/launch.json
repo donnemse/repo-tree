@@ -1,0 +1,45 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug repo-tree",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=repo-tree",
+                    "--package=repo-tree"
+                ],
+                "filter": {
+                    "name": "repo-tree",
+                    "kind": "bin"
+                }
+            },
+            "args": ["--registry", "http://172.16.88.137:30353"],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=repo-tree",
+                    "--package=repo-tree"
+                ],
+                "filter": {
+                    "name": "repo-tree",
+                    "kind": "bin"
+                }
+            },
+            "args": ["--registry", "http://172.16.88.137:30353"],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
