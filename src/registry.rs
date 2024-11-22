@@ -6,7 +6,6 @@ use std::sync::Mutex;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 use crate::ui::CompatibilityRow;
-use crate::ui::LayerInfo;
 
 lazy_static! {
     static ref REGISTRY_URL: Mutex<String> = Mutex::new("http://172.16.88.137:30353/v2/".to_string());
@@ -29,7 +28,6 @@ struct CatalogResponse {
 
 #[derive(Debug, Deserialize)]
 struct TagsResponse {
-    name: String,
     tags: Option<Vec<String>>,
 }
 
@@ -135,71 +133,4 @@ pub fn parse_v1compatibility_fields(manifest: &Value) -> (Vec<CompatibilityRow>,
     let full_json_string = serde_json::to_string_pretty(&manifest).unwrap_or_default();
 
     (table_data, full_json_string)
-}
-
-// manifest와 config 파일에서 레이어 정보를 가져오는 함수
-pub async fn fetch_manifest_and_config(image: &str, tag: &str) -> Result<(Value, Value), Box<dyn std::error::Error>> {
-    let manifest_url = format!("{}{}/manifests/{}", get_registry_url(), image, tag);
-    let client = reqwest::Client::new();
-
-    // manifest 가져오기
-    let manifest_resp = client.get(&manifest_url).send().await?;
-    let manifest_json: Value = manifest_resp.json().await?;
-
-    // config 파일 URL 가져오기
-    let config_digest = manifest_json["config"]["digest"].as_str().ok_or("No config digest found")?;
-    let config_url = format!("{}{}/blobs/{}", get_registry_url(), image, config_digest);
-    
-    // config 파일 가져오기
-    let config_resp = client.get(&config_url).send().await?;
-    let config_json: Value = config_resp.json().await?;
-
-    Ok((manifest_json, config_json))
-}
-
-// registry.rs
-pub fn parse_layers_info(manifest: &Value, config: &Value) -> Vec<LayerInfo> {
-    let mut layers_info = Vec::new();
-
-    let empty_vec = vec![];
-
-    let layers = manifest["layers"].as_array().unwrap_or(&empty_vec);
-    let history = config["history"].as_array().unwrap_or(&empty_vec);
-
-    for (i, layer) in layers.iter().enumerate() {
-        let blob_sum = layer["digest"].as_str().unwrap_or("").to_string();
-        let size = layer["size"].as_i64().unwrap_or(0);
-
-        let command = if let Some(history_entry) = history.get(i) {
-            if let Some(v1compat_str) = history_entry["v1Compatibility"].as_str() {
-                if let Ok(v1compat_json) = serde_json::from_str::<Value>(v1compat_str) {
-                    v1compat_json.get("container_config")
-                        .and_then(|cc| cc.get("Cmd"))
-                        .and_then(|cmd_array| {
-                            cmd_array.as_array().map(|array| {
-                                array.iter()
-                                    .filter_map(|v| v.as_str())
-                                    .collect::<Vec<&str>>()
-                                    .join(" ")
-                            })
-                        })
-                        .unwrap_or_default()
-                } else {
-                    "".to_string()
-                }
-            } else {
-                "".to_string()
-            }
-        } else {
-            "".to_string()
-        };
-
-        layers_info.push(LayerInfo {
-            blob_sum,
-            size: format!("{} B", size),
-            command,
-        });
-    }
-
-    layers_info
 }

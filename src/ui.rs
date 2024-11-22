@@ -8,7 +8,7 @@ use tui::{
 };
 
 use tui::widgets::Clear as PopupClear;
-use crossterm::{event::{self, Event, KeyCode, KeyEvent, KeyModifiers}, style::style};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 use crossterm::{execute, terminal::{Clear, ClearType}};
 
 use std::io;
@@ -253,54 +253,6 @@ impl App {
 
 }
 
-pub fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
-    let max_visible_items = (f.size().height as usize).saturating_sub(3);
-
-    let items: Vec<ListItem> = app
-        .items
-        .iter()
-        .enumerate()
-        .map(|(i, item)| {
-            let style = match app.item_types[i] {
-                1 => Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD), // 1뎁스
-                2 => Style::default().fg(Color::Green),                               // 2뎁스
-                3 => Style::default().fg(Color::Gray),                                // 3뎁스 (태그)
-                _ => Style::default(),
-            };
-
-            let styled_item = if i == app.selected_index {
-                Span::styled(item.clone(), style.bg(Color::Yellow).add_modifier(Modifier::BOLD | Modifier::ITALIC))
-            } else {
-                Span::styled(item.clone(), style)
-            };
-            ListItem::new(vec![Spans::from(styled_item)])
-        })
-        .collect();
-
-    let visible_items = &items[app.scroll_offset..(app.scroll_offset + max_visible_items).min(items.len())];
-
-    let list = List::new(visible_items.to_vec())
-        .block(Block::default().borders(Borders::ALL).title("Docker Images"))
-        .highlight_style(Style::default().bg(Color::Yellow).add_modifier(Modifier::BOLD));
-
-    f.render_widget(list, f.size());
-
-    if app.popup_open {
-        let popup = Paragraph::new(app.popup_content.clone())
-            .block(
-                Block::default()
-                    .title("Tag Details")
-                    .borders(Borders::ALL)
-                    .border_style(Style::default().fg(Color::Magenta)),
-            )
-            .style(Style::default().fg(Color::White).bg(Color::Black).add_modifier(Modifier::ITALIC))
-            .scroll((app.popup_scroll_offset as u16, app.popup_scroll_offset_x as u16)); // 수평 스크롤 적용
-        let area = centered_rect(80, 60, f.size());
-        f.render_widget(PopupClear, area);
-        f.render_widget(popup, area);
-    }
-}
-
 fn centered_rect(percent_x: u16, percent_y: u16, r: tui::layout::Rect) -> tui::layout::Rect {
     let popup_layout = Layout::default()
         .direction(Direction::Vertical)
@@ -322,12 +274,12 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: tui::layout::Rect) -> tui::l
 }
 pub fn render_ui<B: Backend>(f: &mut Frame<B>, app: &App) {
     let banner_text = vec![
-        Spans::from(vec![Span::raw("██╗░██████╗░██╗░░░░░░█████╗░░█████╗░")]),
-        Spans::from(vec![Span::raw("██║██╔════╝░██║░░░░░██╔══██╗██╔══██╗")]),
-        Spans::from(vec![Span::raw("██║██║░░██╗░██║░░░░░██║░░██║██║░░██║")]),
-        Spans::from(vec![Span::raw("██║██║░░╚██╗██║░░░░░██║░░██║██║░░██║")]),
-        Spans::from(vec![Span::raw("██║╚██████╔╝███████╗╚█████╔╝╚█████╔╝")]),
-        Spans::from(vec![Span::raw("╚═╝░╚═════╝░╚══════╝░╚════╝░░╚════╝░")]),
+        Spans::from("██████╗░███████╗██████╗░░█████╗░░░░░░░████████╗██████╗░███████╗███████╗"),
+        Spans::from("██╔══██╗██╔════╝██╔══██╗██╔══██╗░░░░░░╚══██╔══╝██╔══██╗██╔════╝██╔════╝"),
+        Spans::from("██████╔╝█████╗░░██████╔╝██║░░██║█████╗░░░██║░░░██████╔╝█████╗░░█████╗░░"),
+        Spans::from("██╔══██╗██╔══╝░░██╔═══╝░██║░░██║╚════╝░░░██║░░░██╔══██╗██╔══╝░░██╔══╝░░"),
+        Spans::from("██║░░██║███████╗██║░░░░░╚█████╔╝░░░░░░░░░██║░░░██║░░██║███████╗███████╗"),
+        Spans::from("╚═╝░░╚═╝╚══════╝╚═╝░░░░░░╚════╝░░░░░░░░░░╚═╝░░░╚═╝░░╚═╝╚══════╝╚══════╝"),
     ];
 
     let usage_text = vec![
