@@ -290,12 +290,15 @@ pub fn render_ui<B: Backend>(f: &mut Frame<B>, app: &App) {
         Spans::from("  - Press q or Ctrl+C to quit"),
     ];
 
+    let version = env!("CARGO_PKG_VERSION");
+
     let team_text = vec![
         Spans::from(vec![Span::raw("")]),
         Spans::from(vec![Span::raw("")]),
-        Spans::from(vec![Span::raw("")]),
-        Spans::from(vec![Span::raw("")]),
         Spans::from(vec![Span::styled("Develop by Data Platform team  ", Style::default().fg(Color::Gray).add_modifier(Modifier::ITALIC))]),
+        Spans::from(vec![Span::styled("(dev.dp@igloo.co.kr)  ", Style::default().fg(Color::Gray).add_modifier(Modifier::ITALIC))]),
+        Spans::from(vec![Span::raw(format!("v{}  ", version))]),
+        
     ];
 
     // 화면을 세로로 나누기: 상단에 배너, 하단에 트리 구조
@@ -311,9 +314,9 @@ pub fn render_ui<B: Backend>(f: &mut Frame<B>, app: &App) {
     let banner_chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
-            Constraint::Percentage(30),
-            Constraint::Percentage(40), // 중앙에 사용 안내
-            Constraint::Percentage(30), // 오른쪽에 팀 정보
+            Constraint::Length(75),
+            Constraint::Length(50), // 중앙에 사용 안내
+            Constraint::Percentage(50), // 오른쪽에 팀 정보
         ].as_ref())
         .split(vertical_chunks[0]);
 
